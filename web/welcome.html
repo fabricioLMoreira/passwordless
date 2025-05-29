@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Bem-vindo(a)!</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <header>
+        <h1>🔓 Autenticado</h1>
+        <p>Reconhecimento facial com sucesso</p>
+    </header>
+
+    <main class="container">
+        <section class="welcome-section">
+            <img id="userImage" src="" alt="Foto do utilizador" class="user-photo" />
+            <h2 id="welcomeMessage">Bem-vindo(a)!</h2>
+            <p id="loginTime" class="sessionInfo"></p>
+
+            <div id="similarityInfo" class="similarity-box"></div>
+            <button class="logout-button" onclick="goHome()">🔒 Terminar Sessão</button>
+            <p id="sessionTimer" class="sessionInfo"></p>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2025 Projeto AWS | Desenvolvido para Plataformas de Desenvolvimento</p>
+    </footer>
+
+    <script>
+
+        let segundos = 120;
+        setInterval(() => {
+            segundos--;
+            const min = Math.floor(segundos / 60);
+            const seg = segundos % 60;
+            document.getElementById('sessionTimer').textContent =
+                `⏳ Sessão expira em: ${min}:${seg.toString().padStart(2, '0')}`;
+            if (segundos <= 0) window.location.href = 'index.html';
+        }, 1000);
+
+
+        function getQueryParams() {
+            const params = new URLSearchParams(window.location.search);
+            return {
+                name: params.get('name'),
+                similarity: params.get('similarity'),
+                imageUrl: params.get('imageUrl'),
+                lastLogin: params.get('last_login')
+            };
+        }
+
+        function populateWelcomePage() {
+            const { name, similarity, imageUrl, lastLogin } = getQueryParams();
+
+            const formattedSim = parseFloat(similarity).toFixed(2);
+
+            const hora = new Date().getHours();
+            let saudacao = "Olá";
+            if (hora < 12) saudacao = "Bom dia";
+            else if (hora < 18) saudacao = "Boa tarde";
+            else saudacao = "Boa noite";
+
+            document.getElementById('welcomeMessage').textContent = `${saudacao}, ${name}!`;
+            document.getElementById('similarityInfo').textContent = `Similaridade facial: ${formattedSim}%`;
+            document.getElementById('userImage').src = imageUrl;
+
+            if (lastLogin) {
+                document.getElementById('loginTime').textContent =
+                    `🕒 Último login: ${new Date(lastLogin).toLocaleString('pt-PT')}`;
+            }
+        }
+
+        function goHome() {
+            window.location.href = "index.html";
+        }
+
+        window.onload = populateWelcomePage;
+    </script>
+
+</body>
+
+</html>

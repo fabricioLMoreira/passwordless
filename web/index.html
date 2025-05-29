@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Rekognition App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+        crossorigin="anonymous" />
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <h1><i class="fas fa-camera-retro"></i> Rekognition App</h1>
+        <p>Autenticação segura com a tua câmara</p>
+    </header>
+
+    <main class="container">
+        <section class="camera-section">
+            <div class="video-wrapper">
+                <video id="video" autoplay muted playsinline></video>
+                <canvas id="canvas"></canvas>
+                <button id="captureBtn"><i class="fas fa-camera"></i> Capturar rosto</button>
+                <img id="capturedThumbnail" class="thumbnail-preview" />
+            </div>
+
+            <div id="infoMessage">Posiciona o teu rosto e clica em "Capturar rosto"</div>
+        </section>
+
+        <section class="result-section" id="resultSection">
+            <div id="loading"><i class="fas fa-spinner fa-spin"></i> A processar imagem...</div>
+            <h2>Confirmação de Identidade</h2>
+            <div id="resultBox">A aguardar captura...</div>
+        </section>
+
+        <section class="result-section" id="verifyCodeSection" style="display: none;">
+            <h2>🔐 Verificação de Código</h2>
+            <p>Enviámos um código para o teu email. Introduz abaixo:</p>
+            <input type="text" id="codeInput" placeholder="123456" maxlength="6"
+                style="padding: 8px 14px; font-size: 16px; border-radius: 6px; border: 1px solid #ccc;" />
+            <br><br>
+            <button onclick="submitVerificationCode()" class="logout-button">Verificar Código</button>
+            <p id="codeError" style="color: red; margin-top: 10px;"></p>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Projeto AWS | Desenvolvido para Plataformas de Desenvolvimento</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

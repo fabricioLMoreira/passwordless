@@ -1,0 +1,73 @@
+import boto3
+import json
+import time
+from datetime import datetime
+
+dynamodb = boto3.resource('dynamodb')
+table = dynamodb.Table('Users')
+s3 = boto3.client('s3')
+
+BUCKET_NAME = 'rekognition-imagens'
+
+
+def lambda_handler(event, context):
+    try:
+        body = json.loads(event['body'])
+        user_id = int(body.get('id'))
+        code_input = body.get('code')
+
+        # 1. Buscar utilizador no DynamoDB
+        response = table.get_item(Key={'id': user_id})
+        user = response.get('Item')
+
+        if not user:
+            return _response(404, {"success": False, "error": "Utilizador não encontrado."})
+
+        expected_code = user.get('auth_code')
+        expires = user.get('auth_expires', 0)
+
+        # 2. Validar código e tempo
+        if not expected_code or int(time.time()) > int(expires):
+            return _response(403, {"success": False, "error": "Código expirado ou não encontrado."})
+
+        if code_input != expected_code:
+            return _response(403, {"success": False, "error": "Código inválido."})
+
+        # 3. Código válido → Atualizar last_login e remover código
+        now_iso = datetime.utcnow().isoformat()
+
+        table.update_item(
+            Key={'id': user_id},
+            UpdateExpression='SET last_login = :now REMOVE auth_code, auth_expires',
+            ExpressionAttributeValues={':now': now_iso}
+        )
+
+        # 4. Gerar URL assinada para imagem S3 (válida por 5 min)
+        image_url = s3.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': BUCKET_NAME, 'Key': user['s3_key']},
+            ExpiresIn=300
+        )
+
+        # 5. Responder sucesso
+        return _response(200, {
+            "success": True,
+            "name": user['name'],
+            "image_url": image_url,
+            "last_login": now_iso
+        })
+
+    except Exception as e:
+        print("Erro geral:", str(e))
+        return _response(500, {"success": False, "error": str(e)})
+
+def _response(status_code, body):
+    return {
+        "statusCode": status_code,
+        "headers": {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': '*',
+            'Access-Control-Allow-Methods': 'POST,OPTIONS'
+        },
+        "body": json.dumps(body)
+    }
